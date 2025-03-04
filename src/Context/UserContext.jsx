@@ -10,6 +10,43 @@ const UserContext = ({ children }) => {
    let [speechInstance, setSpeechInstance] = useState(null);
    let [Show, setShow] = useState(false);
 
+      function openCamera() {
+         navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+               let video = document.createElement("video");
+               video.srcObject = stream;
+               video.autoplay = true;
+               video.style.position = "fixed";
+               video.style.top = "50%";
+               video.style.left = "50%";
+               video.style.transform = "translate(-50%, -50%)";
+               video.style.width = "90vw";
+               video.style.height = "90vh";
+               video.style.maxWidth = "100%";
+               video.style.maxHeight = "100%";
+               video.style.objectFit = "cover";
+               video.style.borderRadius = "10px";
+               video.style.boxShadow = "0 4px 10px rgba(0, 0, 0, 0.3)";
+               video.setAttribute("playsinline", ""); // For mobile compatibility
+   
+               // Ensure there's only one camera instance
+               let existingVideo = document.getElementById("cameraStream");
+               if (existingVideo) {
+                     existingVideo.remove();
+               }
+               
+               video.id = "cameraStream";
+               document.body.appendChild(video);
+               speak("Camera opened");
+            })
+            .catch((err) => {
+               speak("Error accessing camera.");
+               console.error("Camera error:", err);
+            });
+   }
+  
+
+
    function speak(text) {
       let text_speak = new SpeechSynthesisUtterance(text);
       text_speak.volume = 10;
@@ -75,10 +112,12 @@ const UserContext = ({ children }) => {
          gmail: { url: "https://mail.google.com/", label: "Gmail" },
          calendar: { url: "https://calendar.google.com/", label: "Google Calendar" },
          google: { url: "https://www.google.com/", label: "Google" },
-         camera:{ url:"https://elsafun.netlify.app/",label:"Camera"}
+         facebook: { url: "https://www.facebook.com/", label: "facebook" },
+         weather: { url: "https://www.weather.com/", label: "Weather" },
+         music: { url: "https://www.spotify.com/", label: "Spotify" },
       };
 
-      if ( command.includes("open")) {
+      if (command.includes("open")) {
          for (const key in commands) {
             if (command.includes(key)) {
                window.open(commands[key].url, "_blank");
@@ -87,7 +126,29 @@ const UserContext = ({ children }) => {
                return;
             }
          }
-      } else if (command.includes("time")) {
+      } else if (command.includes("search")) {
+         let query = command.replace("search", "").trim();
+         let url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+         window.open(url, "_blank");
+         speak(`Searching Google for ${query}`);
+      }
+      else if (command.includes("youtube search")) {
+         let query = command.replace("youtube search", "").trim();
+         let url = `https://www.youtube.com/search?q=${encodeURIComponent(query)}`;
+         window.open(url, "_blank");
+         speak(`Searching youtube for ${query}`);
+      }
+      else if (command.includes("weather")) {
+         window.open(commands.weather.url, "_blank");
+         speak("Opening Weather site");
+         setPromte("Opening Weather");
+      }
+      else if (command.includes("music")) {
+         window.open(commands.music.url, "_blank");
+         speak("Opening Music site");
+         setPromte("Opening Music ");
+      }
+      else if (command.includes("time")) {
          let time = new Date().toLocaleTimeString();
          speak(time);
          setPromte(time);
@@ -98,15 +159,12 @@ const UserContext = ({ children }) => {
       } else if (command.includes("your name")) {
          speak("Elsa");
          setPromte("Elsa");
-      } else if (command.includes("pause")) {
-         pauseSpeech();
-      } else if (command.includes("resume")) {
-         resumeSpeech();
-      } else if (command.includes("stop")) {
-         stopSpeech();
-      } else {
+      }else if (command.includes("on camera")) {
+         openCamera();
+     }else {
          aiResponse(command);
       }
+
    }
 
    let value = {
